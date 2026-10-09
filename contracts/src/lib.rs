@@ -109,10 +109,10 @@ pub struct User {
 }
 
 #[contract]
-pub struct KoloSavingsContract;
+pub struct RotulaSavingsContract;
 
 #[contractimpl]
-impl KoloSavingsContract {
+impl RotulaSavingsContract {
     /// Initialize the savings group
     #[allow(clippy::too_many_arguments)]
     pub fn initialize(
@@ -136,6 +136,10 @@ impl KoloSavingsContract {
 
         if contribution_amount > 1_000_000_000_000_000 {
             panic!("Contribution amount exceeds maximum limit");
+        }
+
+        if lock_until_target && target_amount.is_none() {
+            panic!("Lock requires a target amount");
         }
 
         admin.require_auth();
