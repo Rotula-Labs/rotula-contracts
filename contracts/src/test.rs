@@ -1471,6 +1471,8 @@ fn test_remove_member_refunds_paid_contribution_in_goalbased() {
 fn test_rotational_contribute_wrong_amount_rejected() {
 #[should_panic(expected = "Contract is paused for emergency")]
 fn test_pause_blocks_add_member() {
+#[should_panic(expected = "Withdrawals not allowed in rotational groups")]
+fn test_withdraw_savings_rejected_in_rotational_group() {
     let env = Env::default();
     env.mock_all_auths();
     let contract_id = env.register_contract(None, RotulaSavingsContract);
@@ -1546,6 +1548,14 @@ fn test_goalbased_zero_contribution_rejected() {
 #[test]
 #[should_panic(expected = "Contract is paused for emergency")]
 fn test_pause_blocks_payout() {
+    client.contribute(&member, &1000);
+
+    client.withdraw_savings(&member, &500);
+}
+
+#[test]
+#[should_panic(expected = "Payouts not allowed in GoalBased groups")]
+fn test_payout_rejected_in_goalbased_group() {
     let env = Env::default();
     env.mock_all_auths();
     let contract_id = env.register_contract(None, RotulaSavingsContract);
@@ -1595,5 +1605,8 @@ fn test_pause_blocks_payout() {
     client.contribute(&member, &1000);
 
     client.pause();
+    let member = Address::generate(&env);
+    client.add_member(&member);
+
     client.payout(&member);
 }
