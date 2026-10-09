@@ -131,6 +131,10 @@ impl RotulaSavingsContract {
             panic!("Contribution amount exceeds maximum limit");
         }
 
+        if lock_until_target && target_amount.is_none() {
+            panic!("Lock requires a target amount");
+        }
+
         admin.require_auth();
 
         let cycle_len = expected_cycle_days.unwrap_or(30) * 17_280;
