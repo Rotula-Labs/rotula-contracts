@@ -60,6 +60,12 @@ jobs:
         name: kolo-savings-group-wasm
         path: ${{ env.WORKING_DIR }}/target/wasm32v1-none/release/kolo_savings_group.wasm
         retention-days: 14
+    - name: Upload WASM artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      with:
+        name: rotula-savings-group-wasm
+        path: ${{ env.WORKING_DIR }}/target/wasm32v1-none/release/rotula_savings_group.wasm
+        retention-days: 14
   deploy:
     name: Deploy to Testnet
     runs-on: ubuntu-latest
