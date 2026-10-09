@@ -262,18 +262,18 @@ impl RotulaSavingsContract {
         let has_contributed_this_cycle =
             member_state.last_contribution_cycle_id == current_cycle_id;
 
-        if has_contributed_this_cycle {
-            let contribution_amount: i128 = env
-                .storage()
-                .instance()
-                .get(&DataKey::ContributionAmount)
-                .unwrap();
+        if has_contributed_this_cycle && member_state.current_cycle_contribution > 0 {
+            // Refund exactly what the member paid in this cycle, not the
+            // configured contribution amount. In GoalBased groups the
+            // exact-amount rule is skipped, so the two can differ and refunding
+            // the configured amount would over-refund from the pooled savings.
+            let refund_amount = member_state.current_cycle_contribution;
             let token: Address = env.storage().instance().get(&DataKey::Token).unwrap();
             let token_client = token::Client::new(&env, &token);
             token_client.transfer(
                 &env.current_contract_address(),
                 &member_to_remove,
-                &contribution_amount,
+                &refund_amount,
             );
         }
 

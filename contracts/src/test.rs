@@ -1466,6 +1466,7 @@ fn test_emergency_withdraw_twice_panics() {
 fn test_initialize_lock_until_target_without_target_fails() {
 #[should_panic(expected = "Contract is paused for emergency")]
 fn test_pause_blocks_reset_cycle() {
+fn test_remove_member_refunds_paid_contribution_in_goalbased() {
     let env = Env::default();
     env.mock_all_auths();
     let contract_id = env.register_contract(None, RotulaSavingsContract);
@@ -1473,6 +1474,9 @@ fn test_pause_blocks_reset_cycle() {
 
     let admin = Address::generate(&env);
     let token = Address::generate(&env);
+    let token_admin = Address::generate(&env);
+    let token = env.register_stellar_asset_contract(token_admin.clone());
+    let token_client = token::StellarAssetClient::new(&env, &token);
 
     client.initialize(
         &admin,
@@ -1486,10 +1490,30 @@ fn test_pause_blocks_reset_cycle() {
     );
         &GroupType::Rotational,
         &None,
+        &String::from_str(&env, "Goal Group"),
+        &1000i128,
+        &GroupType::GoalBased,
+        &None,
         &false,
         &None,
     );
 
     client.pause();
     client.reset_cycle();
+    let member = Address::generate(&env);
+    client.add_member(&member);
+    token_client.mint(&member, &5000);
+
+    assert_eq!(token_client.balance(&member), 5000);
+
+    // GoalBased groups allow any positive amount, so the member pays 500 into a
+    // group configured with 1000.
+    client.contribute(&member, &500);
+
+    assert_eq!(token_client.balance(&member), 4500);
+
+    client.remove_member(&member);
+
+    // Only the 500 actually paid is refunded, not the configured 1000.
+    assert_eq!(token_client.balance(&member), 5000);
 }
