@@ -101,18 +101,11 @@ pub enum DataKey {
     IsPaused,
 }
 
-#[contracttype]
-#[derive(Clone)]
-pub struct User {
-    pub wallet_address: Address,
-    pub joined_groups: Vec<u32>,
-}
-
 #[contract]
-pub struct KoloSavingsContract;
+pub struct RotulaSavingsContract;
 
 #[contractimpl]
-impl KoloSavingsContract {
+impl RotulaSavingsContract {
     /// Initialize the savings group
     #[allow(clippy::too_many_arguments)]
     pub fn initialize(
