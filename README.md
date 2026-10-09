@@ -35,6 +35,7 @@ This repository is the on-chain half of Rotula, and everything in it is Stellar-
 - [Prerequisites](#prerequisites)
 - [Build and test](#build-and-test)
 - [Integration with Rotula](#integration-with-rotula)
+- [Environment Variables](#environment-variables)
 - [Security and network use](#security-and-network-use)
 - [Contributing](#contributing)
 - [License](#license)
