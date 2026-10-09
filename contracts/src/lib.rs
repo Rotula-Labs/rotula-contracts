@@ -109,10 +109,10 @@ pub struct User {
 }
 
 #[contract]
-pub struct KoloSavingsContract;
+pub struct RotulaSavingsContract;
 
 #[contractimpl]
-impl KoloSavingsContract {
+impl RotulaSavingsContract {
     /// Initialize the savings group
     #[allow(clippy::too_many_arguments)]
     pub fn initialize(
@@ -704,6 +704,7 @@ impl KoloSavingsContract {
     pub fn reset_cycle(env: Env) {
         assert_not_executing_payout(&env);
 
+        require_not_paused(&env);
         let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
         admin.require_auth_for_args(().into_val(&env));
         extend_instance_ttl(&env);
@@ -737,6 +738,7 @@ impl KoloSavingsContract {
     pub fn reset_rotation(env: Env) {
         assert_not_executing_payout(&env);
 
+        require_not_paused(&env);
         let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
         admin.require_auth_for_args(().into_val(&env));
         extend_instance_ttl(&env);
