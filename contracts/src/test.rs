@@ -1469,6 +1469,8 @@ fn test_pause_blocks_reset_cycle() {
 fn test_remove_member_refunds_paid_contribution_in_goalbased() {
 #[should_panic(expected = "Must contribute the exact amount")]
 fn test_rotational_contribute_wrong_amount_rejected() {
+#[should_panic(expected = "Contract is paused for emergency")]
+fn test_pause_blocks_add_member() {
     let env = Env::default();
     env.mock_all_auths();
     let contract_id = env.register_contract(None, RotulaSavingsContract);
@@ -1498,6 +1500,34 @@ fn test_rotational_contribute_wrong_amount_rejected() {
         &None,
     );
 
+    client.pause();
+
+    let member = Address::generate(&env);
+    client.add_member(&member);
+}
+
+#[test]
+#[should_panic(expected = "Contract is paused for emergency")]
+fn test_pause_blocks_remove_member() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let contract_id = env.register_contract(None, RotulaSavingsContract);
+    let client = RotulaSavingsContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let token = Address::generate(&env);
+
+    client.initialize(
+        &admin,
+        &token,
+        &String::from_str(&env, "Test Group"),
+        &1000i128,
+        &GroupType::Rotational,
+        &None,
+        &false,
+        &None,
+    );
+
     let member = Address::generate(&env);
     client.add_member(&member);
     token_client.mint(&member, &5000);
@@ -1508,6 +1538,14 @@ fn test_rotational_contribute_wrong_amount_rejected() {
 #[test]
 #[should_panic(expected = "Amount must be positive")]
 fn test_goalbased_zero_contribution_rejected() {
+
+    client.pause();
+    client.remove_member(&member);
+}
+
+#[test]
+#[should_panic(expected = "Contract is paused for emergency")]
+fn test_pause_blocks_payout() {
     let env = Env::default();
     env.mock_all_auths();
     let contract_id = env.register_contract(None, RotulaSavingsContract);
@@ -1524,6 +1562,9 @@ fn test_goalbased_zero_contribution_rejected() {
         &String::from_str(&env, "Goal Group"),
         &1000i128,
         &GroupType::GoalBased,
+        &String::from_str(&env, "Test Group"),
+        &1000i128,
+        &GroupType::Rotational,
         &None,
         &false,
         &None,
@@ -1548,4 +1589,11 @@ fn test_goalbased_zero_contribution_rejected() {
     // Only the 500 actually paid is refunded, not the configured 1000.
     assert_eq!(token_client.balance(&member), 5000);
     client.contribute(&member, &0);
+    let member = Address::generate(&env);
+    client.add_member(&member);
+    token_client.mint(&member, &5000);
+    client.contribute(&member, &1000);
+
+    client.pause();
+    client.payout(&member);
 }
