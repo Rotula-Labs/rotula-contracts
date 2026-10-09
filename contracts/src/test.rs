@@ -1464,6 +1464,8 @@ fn test_emergency_withdraw_twice_panics() {
 #[test]
 #[should_panic(expected = "Lock requires a target amount")]
 fn test_initialize_lock_until_target_without_target_fails() {
+#[should_panic(expected = "Contract is paused for emergency")]
+fn test_pause_blocks_reset_cycle() {
     let env = Env::default();
     env.mock_all_auths();
     let contract_id = env.register_contract(None, RotulaSavingsContract);
@@ -1482,4 +1484,12 @@ fn test_initialize_lock_until_target_without_target_fails() {
         &true,
         &None,
     );
+        &GroupType::Rotational,
+        &None,
+        &false,
+        &None,
+    );
+
+    client.pause();
+    client.reset_cycle();
 }
