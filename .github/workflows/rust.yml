@@ -66,6 +66,10 @@ jobs:
         name: rotula-savings-group-wasm
         path: ${{ env.WORKING_DIR }}/target/wasm32v1-none/release/rotula_savings_group.wasm
         retention-days: 14
+    - name: Checkout repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        persist-credentials: false
   deploy:
     name: Deploy to Testnet
     runs-on: ubuntu-latest
@@ -111,3 +115,6 @@ jobs:
         STELLAR_SOURCE_ACCOUNT: ${{ secrets.STELLAR_DEPLOYER_KEY }}
       run: "stellar contract deploy \\\n  --wasm target/wasm32v1-none/release/kolo_savings_group.optimized.wasm\
         \ \\\n  --source-account \"$STELLAR_SOURCE_ACCOUNT\" \\\n  --network testnet\n"
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        persist-credentials: false
