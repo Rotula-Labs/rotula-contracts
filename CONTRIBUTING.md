@@ -15,10 +15,22 @@ cargo test
 cargo build --target wasm32v1-none --release
 ```
 
+## Prerequisites
+
+| Tool | Version |
+| ---- | ------- |
+| Rust | stable |
+| wasm32v1-none target | stable |
+| Stellar CLI | 22.0.0 |
+
+The Stellar CLI version is pinned and must match the version installed in
+`.github/workflows/rust.yml` and recorded in `README.md`. To upgrade, bump the
+version in all three places together in a single pull request.
+
 ## Pre-commit hooks
 
-`.pre-commit-config.yaml` defines local hooks that run the same checks as CI.
-Install [pre-commit](https://pre-commit.com) and enable them:
+.pre-commit-config.yaml` defines local hooks that run the same checks as CI.
+Install [pre-commit](https://precommit.com) and enable them:
 
 ```bash
 pip install pre-commit
@@ -29,7 +41,7 @@ pre-commit run --all-files
 The configured hooks are:
 
 - `cargo-fmt` — `cargo fmt --manifest-path contracts/Cargo.toml --all -- --check`
-- `cargo-clippy` — `cargo clippy --manifest-path contracts/Cargo.toml --all-targets -- -D warnings`
+- `cargo-clippy` — `cargo clippy --manifest-path contracts/Cargo.toml --all-targets - -D warnings`
 
 Keep both clean before opening a pull request.
 
@@ -56,6 +68,10 @@ commit any snapshots your change legitimately updates.
 ```bash
 STELLAR_SOURCE_ACCOUNT=<identity> STELLAR_NETWORK=testnet ./contracts/deploy.sh
 ```
+
+The deployment job in CI installs the pinned Stellar CLI version listed in
+the Prerequisites table above. To bump it, edit the version in `.github/workflows/rust.yml`,
+`README.md`, and this file together.
 
 Never commit secret keys or seed phrases.
 

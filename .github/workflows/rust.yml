@@ -92,7 +92,7 @@ jobs:
       with:
         workspaces: ${{ env.WORKING_DIR }}
     - name: Install Stellar CLI
-      run: 'cargo install stellar-cli --locked
+      run: 'cargo install stellar-cli --version 22.0.1 --locked
 
         stellar --version
 

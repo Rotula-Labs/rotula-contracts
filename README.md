@@ -133,7 +133,7 @@ Because the contract's pool accounting, contribution readiness, and backend payo
 | Tool            | Version / Notes                                 | Install                                                                            |
 | --------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------- |
 | **Rust**        | stable, with the `wasm32v1-none` target         | https://rustup.rs                                                                  |
-| **Stellar CLI** | latest, for deploying and invoking the contract | `brew install stellar-cli` or [cargo/docs](https://github.com/stellar/stellar-cli) |
+| **Stellar CLI** | 22.8.1 (pinned in `.github/workflows/rust.yml`), for deploying and invoking the contract | `cargo install stellar-cli --version 22.8.1 --locked` or [cargo/docs](https://github.com/stellar/stellar-cli) |
 | **Soroban SDK** | 27 (pinned in `contracts/Cargo.toml`)           | pulled by Cargo                                                                    |
 
 Verify your setup:
