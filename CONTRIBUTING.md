@@ -17,8 +17,8 @@ cargo build --target wasm32v1-none --release
 
 ## Pre-commit hooks
 
-`.pre-commit-config.yaml` defines local hooks that run the same checks as CI.
-Install [pre-commit](https://pre-commit.com) and enable them:
+.pre-commit-config.yaml` defines local hooks that run the same checks as CI.
+Install [pre-commit](https://precommit.com) and enable them:
 
 ```bash
 pip install pre-commit
@@ -58,6 +58,23 @@ STELLAR_SOURCE_ACCOUNT=<identity> STELLAR_NETWORK=testnet ./contracts/deploy.sh
 ```
 
 Never commit secret keys or seed phrases.
+
+### Deployment gate
+
+The `deploy` job in `.github/workflows/rust.yml` is gated behind a GitHub
+Environment named `testnet`. The environment is the deployment record and the
+control point for releases:
+
+- The `STELLAR_DEPLOYER_KEY` secret is stored as an environment secret on
+  `testnet`, not as a repository secret. The deploy job can only read it when
+  it runs inside that environment.
+- The `testnet` environment must have required reviewers or a wait timer
+  configured per the repository's release policy, so a merge to `main` cannot
+  deploy without an explicit approval.
+- The deploy job still skips on pull requests and on pushes to `develop`;
+  only pushes to `main` reach the environment gate.
+
+Deployment is an event, not a side effect of merging.
 
 ## License
 
