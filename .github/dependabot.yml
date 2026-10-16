@@ -4,3 +4,12 @@ updates:
   directory: /
   schedule:
     interval: weekly
+- package-ecosystem: cargo
+  directory: /
+  schedule:
+    interval: weekly
+  allow:
+    - dependency-name: stellar-cli
+  # stellar-cli is pinned in .github/workflows/rust.yml and documented in
+  # README.md and CONTRIBUTING.md; bump all three together.
+  open-pull-requests-limit: 1
