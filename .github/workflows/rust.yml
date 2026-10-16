@@ -49,19 +49,19 @@ jobs:
     - name: Build WebAssembly (release)
       run: cargo build --target wasm32v1-none --release
     - name: Upload WASM artifact
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: rotula-savings-group-wasm
         path: ${{ env.WORKING_DIR }}/target/wasm32v1-none/release/rotula_savings_group.wasm
         retention-days: 14
     - name: Upload WASM artifact
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: kolo-savings-group-wasm
         path: ${{ env.WORKING_DIR }}/target/wasm32v1-none/release/kolo_savings_group.wasm
         retention-days: 14
     - name: Upload WASM artifact
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: rotula-savings-group-wasm
         path: ${{ env.WORKING_DIR }}/target/wasm32v1-none/release/rotula_savings_group.wasm
