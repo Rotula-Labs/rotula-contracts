@@ -1464,15 +1464,6 @@ fn test_emergency_withdraw_twice_panics() {
 #[test]
 #[should_panic(expected = "Lock requires a target amount")]
 fn test_initialize_lock_until_target_without_target_fails() {
-#[should_panic(expected = "Contract is paused for emergency")]
-fn test_pause_blocks_reset_cycle() {
-fn test_remove_member_refunds_paid_contribution_in_goalbased() {
-#[should_panic(expected = "Must contribute the exact amount")]
-fn test_rotational_contribute_wrong_amount_rejected() {
-#[should_panic(expected = "Contract is paused for emergency")]
-fn test_pause_blocks_add_member() {
-#[should_panic(expected = "Withdrawals not allowed in rotational groups")]
-fn test_withdraw_savings_rejected_in_rotational_group() {
     let env = Env::default();
     env.mock_all_auths();
     let contract_id = env.register_contract(None, RotulaSavingsContract);
@@ -1480,9 +1471,6 @@ fn test_withdraw_savings_rejected_in_rotational_group() {
 
     let admin = Address::generate(&env);
     let token = Address::generate(&env);
-    let token_admin = Address::generate(&env);
-    let token = env.register_stellar_asset_contract(token_admin.clone());
-    let token_client = token::StellarAssetClient::new(&env, &token);
 
     client.initialize(
         &admin,
@@ -1494,8 +1482,153 @@ fn test_withdraw_savings_rejected_in_rotational_group() {
         &true,
         &None,
     );
+}
+
+#[test]
+#[should_panic(expected = "Contract is paused for emergency")]
+fn test_pause_blocks_reset_cycle() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let contract_id = env.register_contract(None, RotulaSavingsContract);
+    let client = RotulaSavingsContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let token = Address::generate(&env);
+
+    client.initialize(
+        &admin,
+        &token,
+        &String::from_str(&env, "Test Group"),
+        &1000i128,
         &GroupType::Rotational,
         &None,
+        &false,
+        &None,
+    );
+
+    client.pause();
+    client.reset_cycle();
+}
+
+#[test]
+fn test_remove_member_refunds_paid_contribution_in_goalbased() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let contract_id = env.register_contract(None, RotulaSavingsContract);
+    let client = RotulaSavingsContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let token_admin = Address::generate(&env);
+    let token = env.register_stellar_asset_contract(token_admin.clone());
+    let token_client = token::StellarAssetClient::new(&env, &token);
+
+    client.initialize(
+        &admin,
+        &token,
+        &String::from_str(&env, "Goal Group"),
+        &1000i128,
+        &GroupType::GoalBased,
+        &None,
+        &false,
+        &None,
+    );
+
+    let member = Address::generate(&env);
+    client.add_member(&member);
+    token_client.mint(&member, &5000);
+
+    assert_eq!(token_client.balance(&member), 5000);
+
+    // GoalBased groups allow any positive amount, so the member pays 500 into a
+    // group configured with 1000.
+    client.contribute(&member, &500);
+
+    assert_eq!(token_client.balance(&member), 4500);
+
+    client.remove_member(&member);
+
+    // Only the 500 actually paid is refunded, not the configured 1000.
+    assert_eq!(token_client.balance(&member), 5000);
+}
+
+#[test]
+#[should_panic(expected = "Must contribute the exact amount")]
+fn test_rotational_contribute_wrong_amount_rejected() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let contract_id = env.register_contract(None, RotulaSavingsContract);
+    let client = RotulaSavingsContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let token_admin = Address::generate(&env);
+    let token = env.register_stellar_asset_contract(token_admin.clone());
+    let token_client = token::StellarAssetClient::new(&env, &token);
+
+    client.initialize(
+        &admin,
+        &token,
+        &String::from_str(&env, "Test Group"),
+        &1000i128,
+        &GroupType::Rotational,
+        &None,
+        &false,
+        &None,
+    );
+
+    let member = Address::generate(&env);
+    client.add_member(&member);
+    token_client.mint(&member, &5000);
+
+    client.contribute(&member, &500);
+}
+
+#[test]
+#[should_panic(expected = "Amount must be positive")]
+fn test_goalbased_zero_contribution_rejected() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let contract_id = env.register_contract(None, RotulaSavingsContract);
+    let client = RotulaSavingsContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let token_admin = Address::generate(&env);
+    let token = env.register_stellar_asset_contract(token_admin.clone());
+    let token_client = token::StellarAssetClient::new(&env, &token);
+
+    client.initialize(
+        &admin,
+        &token,
+        &String::from_str(&env, "Goal Group"),
+        &1000i128,
+        &GroupType::GoalBased,
+        &None,
+        &false,
+        &None,
+    );
+
+    let member = Address::generate(&env);
+    client.add_member(&member);
+    token_client.mint(&member, &5000);
+
+    client.contribute(&member, &0);
+}
+
+#[test]
+#[should_panic(expected = "Contract is paused for emergency")]
+fn test_pause_blocks_add_member() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let contract_id = env.register_contract(None, RotulaSavingsContract);
+    let client = RotulaSavingsContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let token = Address::generate(&env);
+
+    client.initialize(
+        &admin,
+        &token,
+        &String::from_str(&env, "Test Group"),
+        &1000i128,
         &GroupType::Rotational,
         &None,
         &false,
@@ -1532,14 +1665,6 @@ fn test_pause_blocks_remove_member() {
 
     let member = Address::generate(&env);
     client.add_member(&member);
-    token_client.mint(&member, &5000);
-
-    client.contribute(&member, &500);
-}
-
-#[test]
-#[should_panic(expected = "Amount must be positive")]
-fn test_goalbased_zero_contribution_rejected() {
 
     client.pause();
     client.remove_member(&member);
@@ -1548,6 +1673,63 @@ fn test_goalbased_zero_contribution_rejected() {
 #[test]
 #[should_panic(expected = "Contract is paused for emergency")]
 fn test_pause_blocks_payout() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let contract_id = env.register_contract(None, RotulaSavingsContract);
+    let client = RotulaSavingsContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let token_admin = Address::generate(&env);
+    let token = env.register_stellar_asset_contract(token_admin.clone());
+    let token_client = token::StellarAssetClient::new(&env, &token);
+
+    client.initialize(
+        &admin,
+        &token,
+        &String::from_str(&env, "Test Group"),
+        &1000i128,
+        &GroupType::Rotational,
+        &None,
+        &false,
+        &None,
+    );
+
+    let member = Address::generate(&env);
+    client.add_member(&member);
+    token_client.mint(&member, &5000);
+    client.contribute(&member, &1000);
+
+    client.pause();
+    client.payout(&member);
+}
+
+#[test]
+#[should_panic(expected = "Withdrawals not allowed in rotational groups")]
+fn test_withdraw_savings_rejected_in_rotational_group() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let contract_id = env.register_contract(None, RotulaSavingsContract);
+    let client = RotulaSavingsContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let token_admin = Address::generate(&env);
+    let token = env.register_stellar_asset_contract(token_admin.clone());
+    let token_client = token::StellarAssetClient::new(&env, &token);
+
+    client.initialize(
+        &admin,
+        &token,
+        &String::from_str(&env, "Test Group"),
+        &1000i128,
+        &GroupType::Rotational,
+        &None,
+        &false,
+        &None,
+    );
+
+    let member = Address::generate(&env);
+    client.add_member(&member);
+    token_client.mint(&member, &5000);
     client.contribute(&member, &1000);
 
     client.withdraw_savings(&member, &500);
@@ -1564,7 +1746,6 @@ fn test_payout_rejected_in_goalbased_group() {
     let admin = Address::generate(&env);
     let token_admin = Address::generate(&env);
     let token = env.register_stellar_asset_contract(token_admin.clone());
-    let token_client = token::StellarAssetClient::new(&env, &token);
 
     client.initialize(
         &admin,
@@ -1572,39 +1753,11 @@ fn test_payout_rejected_in_goalbased_group() {
         &String::from_str(&env, "Goal Group"),
         &1000i128,
         &GroupType::GoalBased,
-        &String::from_str(&env, "Test Group"),
-        &1000i128,
-        &GroupType::Rotational,
         &None,
         &false,
         &None,
     );
 
-    client.pause();
-    client.reset_cycle();
-    let member = Address::generate(&env);
-    client.add_member(&member);
-    token_client.mint(&member, &5000);
-
-    assert_eq!(token_client.balance(&member), 5000);
-
-    // GoalBased groups allow any positive amount, so the member pays 500 into a
-    // group configured with 1000.
-    client.contribute(&member, &500);
-
-    assert_eq!(token_client.balance(&member), 4500);
-
-    client.remove_member(&member);
-
-    // Only the 500 actually paid is refunded, not the configured 1000.
-    assert_eq!(token_client.balance(&member), 5000);
-    client.contribute(&member, &0);
-    let member = Address::generate(&env);
-    client.add_member(&member);
-    token_client.mint(&member, &5000);
-    client.contribute(&member, &1000);
-
-    client.pause();
     let member = Address::generate(&env);
     client.add_member(&member);
 
